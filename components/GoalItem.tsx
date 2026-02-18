@@ -7,8 +7,8 @@ type GoalItemProps = {
   isCompleted: boolean;
   createdDate: string;
   completedDate?: string;
-  onComplete: (id: string) => void;
-  onDelete: (id: string) => void;
+  onComplete?: (id: string) => Promise<void>;
+  onDelete: (id: string) => Promise<void>;
 };
 
 const GoalItem = ({
@@ -37,13 +37,13 @@ const GoalItem = ({
         {!isCompleted ? (
           <View style={styles.buttonArea}>
             <Pressable
-              onPress={() => onComplete(id)}
+              onPress={async () => onComplete && (await onComplete(id))}
               style={[styles.iconButton, styles.checkButton]}
             >
               <Text style={[styles.iconText, styles.checkText]}>✓</Text>
             </Pressable>
             <Pressable
-              onPress={() => onDelete(id)}
+              onPress={async () => await onDelete(id)}
               style={[styles.iconButton, styles.deleteButton]}
             >
               <Text style={[styles.iconText, styles.deleteText]}>✕</Text>

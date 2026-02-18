@@ -1,108 +1,113 @@
-import AsyncStorage from "@react-native-async-storage/async-storage";
 import { createContext, useContext, useEffect, useState } from "react";
 import Toast from "react-native-toast-message";
-
-type Goal = {
-  id: string;
-  text: string;
-  isCompleted: boolean;
-  createdDate: string;
-  completedDate?: string;
-};
+import {
+  deleteCompletedGoals,
+  deleteGoalById,
+  getAllGoals,
+  Goal,
+  initializeDatabase,
+  insertGoal,
+  updateGoalCompletion,
+} from "./database";
 
 type GoalsContextType = {
   goals: Goal[];
-  addGoal: (text: string) => void;
-  setCompletedGoal: (id: string) => void;
-  deleteGoal: (id: string) => void;
-  clearAllGoals: () => void;
+  addGoal: (text: string) => Promise<void>;
+  setCompletedGoal: (id: string) => Promise<void>;
+  deleteGoal: (id: string) => Promise<void>;
+  clearAllGoals: () => Promise<void>;
 };
 
 const GoalsContext = createContext<GoalsContextType | undefined>(undefined);
 
 export const GoalsProvider = ({ children }: { children: React.ReactNode }) => {
   const [goals, setGoals] = useState<Goal[]>([]);
-  const STORAGE_KEY = "goalsdata123";
   const [isLoading, setIsLoading] = useState(true);
 
-  // load stored goals from loacal storage
+  // Initialize database and load goals
   useEffect(() => {
-    const loadGoals = async () => {
+    const initializeDB = async () => {
       try {
-        const storedGoals = await AsyncStorage.getItem(STORAGE_KEY);
-        if (storedGoals) {
-          const parsedGoals = JSON.parse(storedGoals);
-          const migratedGoals = parsedGoals.map((goal: any) => ({
-            ...goal,
-            createdDate: goal.createdDate || new Date().toISOString(),
-            completedDate: goal.completedDate,
-          }));
-          setGoals(migratedGoals);
-        }
+        await initializeDatabase();
+        const goals = await getAllGoals();
+        setGoals(goals);
       } catch (error) {
-        console.error("Failed to load goals", error);
+        console.error("Failed to initialize database", error);
       } finally {
         setIsLoading(false);
       }
     };
 
-    loadGoals();
+    initializeDB();
   }, []);
 
-  // save goals to storage whenever they change
-  useEffect(() => {
-    if (!isLoading) {
-      const saveGoals = async () => {
-        try {
-          await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(goals));
-        } catch (error) {
-          console.error("Failed to save goals", error);
-        }
-      };
-      saveGoals();
+  const addGoal = async (text: string) => {
+    const newGoal: Goal = {
+      id: Date.now().toString(),
+      text,
+      isCompleted: false,
+      createdDate: new Date().toISOString(),
+    };
+
+    try {
+      await insertGoal(newGoal);
+      setGoals((prev) => [newGoal, ...prev]);
+      Toast.show({ type: "success", text1: "Goal added" });
+    } catch (error) {
+      console.error("Failed to add goal", error);
+      Toast.show({ type: "error", text1: "Failed to add goal" });
     }
-  }, [goals, isLoading]);
-
-  const addGoal = (text: string) => {
-    setGoals((prev) => [
-      ...prev,
-      {
-        id: Date.now().toString(),
-        text,
-        isCompleted: false,
-        createdDate: new Date().toISOString(),
-      },
-    ]);
-    Toast.show({ type: "success", text1: "Goal added" });
   };
 
-  const setCompletedGoal = (id: string) => {
-    setGoals((prev) =>
-      prev.map((goal) =>
-        goal.id === id
-          ? {
-              ...goal,
-              isCompleted: !goal.isCompleted,
-              completedDate: !goal.isCompleted
-                ? new Date().toISOString()
-                : undefined,
-            }
-          : goal,
-      ),
-    );
-    Toast.show({ type: "success", text1: "Goal is set 'completed'" });
+  const setCompletedGoal = async (id: string) => {
+    const goal = goals.find((g) => g.id === id);
+    if (!goal) return;
+
+    const newIsCompleted = !goal.isCompleted;
+    const completedDate = newIsCompleted ? new Date().toISOString() : null;
+
+    try {
+      await updateGoalCompletion(id, newIsCompleted, completedDate);
+      setGoals((prev) =>
+        prev.map((g) =>
+          g.id === id
+            ? {
+                ...g,
+                isCompleted: newIsCompleted,
+                completedDate: completedDate || undefined,
+              }
+            : g,
+        ),
+      );
+      Toast.show({ type: "success", text1: "Goal is set 'completed'" });
+    } catch (error) {
+      console.error("Failed to update goal", error);
+      Toast.show({ type: "error", text1: "Failed to update goal" });
+    }
   };
-  const deleteGoal = (id: string) => {
-    setGoals((prevGoals) => prevGoals.filter((goal) => goal.id !== id));
-    Toast.show({ type: "success", text1: "Goal deleted" });
+  const deleteGoal = async (id: string) => {
+    try {
+      await deleteGoalById(id);
+      setGoals((prevGoals) => prevGoals.filter((goal) => goal.id !== id));
+      Toast.show({ type: "success", text1: "Goal deleted" });
+    } catch (error) {
+      console.error("Failed to delete goal", error);
+      Toast.show({ type: "error", text1: "Failed to delete goal" });
+    }
   };
 
-  const clearAllGoals = () => {
-    setGoals((prevGoals) => prevGoals.filter((goal) => !goal.isCompleted));
-    Toast.show({
-      type: "success",
-      text1: "All completed goals cleared",
-    });
+  const clearAllGoals = async () => {
+    try {
+      await deleteCompletedGoals();
+      setGoals((prevGoals) => prevGoals.filter((goal) => !goal.isCompleted));
+      Toast.show({
+        type: "success",
+        text1: "All completed goals cleared",
+      });
+    } catch (error) {
+      console.error("Failed to clear goals", error);
+      Toast.show({ type: "error", text1: "Failed to clear goals" });
+    }
   };
 
   // loading

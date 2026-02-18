@@ -1,19 +1,19 @@
 import React, { useRef, useState } from "react";
 import {
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TextInput,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type Props = {
   visible: boolean;
-  onAddGoal: (text: string) => void;
+  onAddGoal: (text: string) => Promise<void>;
   onCancel: () => void;
 };
 
@@ -22,14 +22,14 @@ const GoalInput = ({ visible, onAddGoal, onCancel }: Props) => {
   const [isInvalid, setIsInvalid] = useState(false);
   const inputRef = useRef<TextInput>(null);
 
-  const onAddGoalHandler = () => {
+  const onAddGoalHandler = async () => {
     if (!text.trim()) {
       setIsInvalid(true);
       inputRef.current?.focus();
       return;
     }
 
-    onAddGoal(text);
+    await onAddGoal(text);
     setText("");
     setIsInvalid(false);
   };

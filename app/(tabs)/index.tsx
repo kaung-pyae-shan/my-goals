@@ -27,8 +27,8 @@ const HomeScreen = () => {
     setModalVisible(false);
   };
 
-  const addGoalHandler = (goalText: string) => {
-    addGoal(goalText);
+  const addGoalHandler = async (goalText: string) => {
+    await addGoal(goalText);
     closeModalHandler();
   };
 

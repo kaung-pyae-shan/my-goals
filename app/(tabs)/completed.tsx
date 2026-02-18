@@ -24,8 +24,8 @@ const CompletedScreen = () => {
     setModalVisible(false);
   };
 
-  const confirmHandler = () => {
-    clearAllGoals();
+  const confirmHandler = async () => {
+    await clearAllGoals();
     closeModalHandler();
   };
 
@@ -56,7 +56,6 @@ const CompletedScreen = () => {
               isCompleted={item.isCompleted}
               createdDate={item.createdDate}
               completedDate={item.completedDate}
-              onComplete={() => {}}
               onDelete={deleteGoal}
             />
           )}
