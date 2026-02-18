@@ -1,44 +1,22 @@
-import React, { useRef, useState } from "react";
+import React from "react";
 import {
-  Image,
-  KeyboardAvoidingView,
-  Modal,
-  Platform,
-  StyleSheet,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+    Image,
+    KeyboardAvoidingView,
+    Modal,
+    Platform,
+    StyleSheet,
+    Text,
+    TouchableOpacity,
+    View,
 } from "react-native";
 
 type Props = {
   visible: boolean;
-  onAddGoal: (text: string) => void;
+  onConfirm: () => void;
   onCancel: () => void;
 };
 
-const GoalInput = ({ visible, onAddGoal, onCancel }: Props) => {
-  const [text, setText] = useState("");
-  const [isInvalid, setIsInvalid] = useState(false);
-  const inputRef = useRef<TextInput>(null);
-
-  const onAddGoalHandler = () => {
-    if (!text.trim()) {
-      setIsInvalid(true);
-      inputRef.current?.focus();
-      return;
-    }
-
-    onAddGoal(text);
-    setText("");
-    setIsInvalid(false);
-  };
-
-  const onCancelHandler = () => {
-    onCancel();
-    setIsInvalid(false);
-  };
-
+const ConfirmModal = ({ visible, onConfirm, onCancel }: Props) => {
   return (
     <Modal
       visible={visible}
@@ -58,24 +36,17 @@ const GoalInput = ({ visible, onAddGoal, onCancel }: Props) => {
                 style={styles.logo}
                 resizeMode="contain"
               />
-              <Text style={styles.titleText}>Set your New Goal</Text>
+              <Text style={styles.titleText}>Clear all completed goals?</Text>
             </View>
-            <TextInput
-              placeholder="Enter your goal"
-              value={text}
-              ref={inputRef}
-              onChangeText={setText}
-              style={[styles.input, isInvalid && styles.invalidInput]}
-            />
             <View style={styles.buttonContent}>
               <TouchableOpacity
-                onPress={onAddGoalHandler}
+                onPress={onConfirm}
                 style={[styles.button, styles.addBtn]}
               >
-                <Text style={styles.addBtnText}>Add</Text>
+                <Text style={styles.addBtnText}>Clear</Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={onCancelHandler}
+                onPress={onCancel}
                 style={[styles.button, styles.cancelBtn]}
               >
                 <Text>Cancel</Text>
@@ -88,7 +59,7 @@ const GoalInput = ({ visible, onAddGoal, onCancel }: Props) => {
   );
 };
 
-export default GoalInput;
+export default ConfirmModal;
 
 const styles = StyleSheet.create({
   container: {
@@ -111,6 +82,7 @@ const styles = StyleSheet.create({
     height: 100,
     justifyContent: "space-evenly",
     alignItems: "center",
+    marginBottom: 18,
   },
   logo: {
     width: 36,
@@ -127,11 +99,6 @@ const styles = StyleSheet.create({
     marginTop: 5,
     marginBottom: 22,
     borderRadius: 10,
-  },
-  invalidInput: {
-    borderColor: "#ff6b6b",
-    borderWidth: 2,
-    backgroundColor: "#ffecec",
   },
   buttonContent: {
     flexDirection: "row",
