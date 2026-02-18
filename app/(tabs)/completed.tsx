@@ -5,11 +5,11 @@ import { useGoals } from "@/contexts/GoalsContext";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
-   FlatList,
-   StyleSheet,
-   Text,
-   TouchableOpacity,
-   View,
+  FlatList,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
 
 const CompletedScreen = () => {
@@ -54,6 +54,8 @@ const CompletedScreen = () => {
               id={item.id}
               text={item.text}
               isCompleted={item.isCompleted}
+              createdDate={item.createdDate}
+              completedDate={item.completedDate}
               onComplete={() => {}}
               onDelete={deleteGoal}
             />

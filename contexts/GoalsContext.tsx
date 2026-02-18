@@ -6,6 +6,8 @@ type Goal = {
   id: string;
   text: string;
   isCompleted: boolean;
+  createdDate: string;
+  completedDate?: string;
 };
 
 type GoalsContextType = {
@@ -29,7 +31,13 @@ export const GoalsProvider = ({ children }: { children: React.ReactNode }) => {
       try {
         const storedGoals = await AsyncStorage.getItem(STORAGE_KEY);
         if (storedGoals) {
-          setGoals(JSON.parse(storedGoals));
+          const parsedGoals = JSON.parse(storedGoals);
+          const migratedGoals = parsedGoals.map((goal: any) => ({
+            ...goal,
+            createdDate: goal.createdDate || new Date().toISOString(),
+            completedDate: goal.completedDate,
+          }));
+          setGoals(migratedGoals);
         }
       } catch (error) {
         console.error("Failed to load goals", error);
@@ -58,7 +66,12 @@ export const GoalsProvider = ({ children }: { children: React.ReactNode }) => {
   const addGoal = (text: string) => {
     setGoals((prev) => [
       ...prev,
-      { id: Date.now().toString(), text, isCompleted: false },
+      {
+        id: Date.now().toString(),
+        text,
+        isCompleted: false,
+        createdDate: new Date().toISOString(),
+      },
     ]);
     Toast.show({ type: "success", text1: "Goal added" });
   };
@@ -66,7 +79,15 @@ export const GoalsProvider = ({ children }: { children: React.ReactNode }) => {
   const setCompletedGoal = (id: string) => {
     setGoals((prev) =>
       prev.map((goal) =>
-        goal.id === id ? { ...goal, isCompleted: !goal.isCompleted } : goal,
+        goal.id === id
+          ? {
+              ...goal,
+              isCompleted: !goal.isCompleted,
+              completedDate: !goal.isCompleted
+                ? new Date().toISOString()
+                : undefined,
+            }
+          : goal,
       ),
     );
     Toast.show({ type: "success", text1: "Goal is set 'completed'" });

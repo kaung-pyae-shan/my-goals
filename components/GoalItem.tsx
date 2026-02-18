@@ -5,6 +5,8 @@ type GoalItemProps = {
   id: string;
   text: string;
   isCompleted: boolean;
+  createdDate: string;
+  completedDate?: string;
   onComplete: (id: string) => void;
   onDelete: (id: string) => void;
 };
@@ -13,13 +15,25 @@ const GoalItem = ({
   id,
   text,
   isCompleted,
+  createdDate,
+  completedDate,
   onComplete,
   onDelete,
 }: GoalItemProps) => {
   return (
     <View style={styles.goalItem}>
       <View style={styles.goalItemContent}>
-        <Text style={styles.goalText}>{text}</Text>
+        <View style={styles.textContainer}>
+          <Text style={styles.goalText}>{text}</Text>
+          <Text style={styles.dateText}>
+            Created: {new Date(createdDate).toLocaleDateString()}
+          </Text>
+          {completedDate && (
+            <Text style={styles.dateText}>
+              Completed: {new Date(completedDate).toLocaleDateString()}
+            </Text>
+          )}
+        </View>
         {!isCompleted ? (
           <View style={styles.buttonArea}>
             <Pressable
@@ -68,11 +82,20 @@ const styles = StyleSheet.create({
   goalItemContent: {
     flexDirection: "row",
     justifyContent: "space-between",
+    alignItems: "flex-start",
+  },
+  textContainer: {
+    flex: 1,
   },
   goalText: {
     fontSize: 16,
     color: "#333",
     paddingVertical: 4,
+  },
+  dateText: {
+    fontSize: 12,
+    color: "#666",
+    fontStyle: "italic",
   },
   buttonArea: {
     flexDirection: "row",
